@@ -1,9 +1,8 @@
 import dlp.interpolation.*;
 
-Curve posCurve, satCurve, bnessCurve;
-
 int FRAME_RATE = 60;
 
+Curve posCurve, satCurve, bnessCurve;
 float startX, stopX, startS, stopS, startB, stopB;
 
 void setup() {

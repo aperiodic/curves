@@ -5,6 +5,7 @@ int FRAME_RATE = 60;
 Curve posCurve, satCurve, bnessCurve;
 float startX, stopX, startS, stopS, startB, stopB;
 
+
 void setup() {
   size(800, 600);
   frameRate(FRAME_RATE);
@@ -27,6 +28,7 @@ void setup() {
   bnessCurve.start();
 }
 
+
 void draw() {
   background(16);
   
@@ -38,8 +40,16 @@ void draw() {
   ellipse(posCurve.value(), height/2, 80, 80);
 }
 
+
 void mousePressed() {
-  posCurve.reverse();
-  satCurve.reverse();
-  bnessCurve.reverse();
+  if (posCurve.finished() && satCurve.finished() && bnessCurve.finished()) {
+    posCurve.swapEndpoints();
+    posCurve.start();
+    
+    satCurve.swapEndpoints();
+    satCurve.start();
+    
+    bnessCurve.swapEndpoints();
+    bnessCurve.start();
+  }
 }

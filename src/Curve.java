@@ -4,9 +4,11 @@ import processing.core.*;
 /**
  * Easy-to-use interpolation curves, in four varieties. 
  * Once a curve is created, call the {@link #start} method to begin the
- * interpolation. 
- * Once finished, the curve can be {@link #reverse}'d or new endpoints can be 
- * set with {@link #setStartValue} and {@link #setTargetValue}.
+ * interpolation.
+ * While running, the interpolation can be {@link #reverse}'d.
+ * Once finished, the curve can be turned around with {@link #swapEndpoints}, or
+ * new endpoints can be set with {@link #setStartValue} and 
+ * {@link #setTargetValue}.
  * Start the animation again with {@link #start}.
  * If you just want to re-live old times, play the whole thing back with 
  * {@link #restart}.
@@ -111,7 +113,11 @@ public class Curve {
 			return;
 		}
 		
-    _t += 1.0f / _frames;
+    if (!reversed) {
+      _t += 1.0f / _frames;
+    } else {
+      _t -= 1.0f / _frames;
+    }
 		
 		if (_t >= 1.0f) {
       _t = 1.0f;
@@ -122,6 +128,8 @@ public class Curve {
 		} else if (_t <= 0.0f) {
       _t = 0.0f;
 			_value = _start;
+      finished = true;
+      animating = false;
 			return;
 		}
 		
@@ -171,6 +179,18 @@ public class Curve {
       reset();
     }
 	}
+  
+  /**
+   * Set the duration of the curve's interpolation, in frames.
+   * 
+   * If the curve is not currently interpolating, also {@link #reset} the
+   * interpolation.
+   * 
+   * @param frames The number of frames that the interpolation should last for.
+   */
+  public void setDuration(int frames) {
+    _frames = frames;
+  }
 	
   /**
    * Start the curve's interpolation. 
@@ -194,19 +214,57 @@ public class Curve {
 	public void toggle() {
 		animating = !animating;
 	}
+  
+  /**
+   * Reverse the direction of interpolation (whether <code>t</code> is 
+   * increasing or decreasing).
+   * 
+   * If the curve is currently interpolating, this will take effect immediately.
+   * If the curve has finished interpolating, you will need to {@link #start} it
+   * again.
+   * 
+   * <p>
+   * Note that reversing a curve is not quite the same as swapping the 
+   * endpoints, if the curve is not symmetric about the midpoint.
+   * For example, an ease-in curve starts out slowly and gets faster as time 
+   * goes on; it is not symmetric about the midpoint, since it's going faster
+   * at <code>t = 0.9</code> than at <code>t = 0.1</code>, even though both
+   * times are the same distance from <code>t = 0.5</code>.
+   * If you reverse this curve, then <code>t = 0.9</code> near the beginning,
+   * rather than the end, of the interpolation.
+   * Since this is an ease-in curve, it will be going quickly at this point, but
+   * when <code>t = 0.1</code> (near the end), it will be going slowly. 
+   * Long story short, this reversed ease-in curve behaves as if it were an 
+   * un-reversed ease-out curve with the endpoints swapped!
+   * </p>
+   * 
+   * <p>
+   * For an example which might make the above explanation clear, see the 
+   * ReverseVsSwap.pde file in the examples directory.
+   * </p>
+   * 
+   * @see #swapEndpoints
+   */
+  public void reverse() {
+    reversed = !reversed;
+  }
+  
 	
   /**
-   * If finished, swap the start and target values of the animation, and 
-   * restart it.
+   * If the interpolation has finished, swap the start and target values, and
+   * reset the curve.
    * 
-   * If the curve is currently interpolating, then this method is ignored.
+   * <p>
+   * Note that, for some curves, this is not quite the same as reversing.
+   * See {@link #reverse} for a more thorough discussion.
+   * </p>
    */
-	public void reverse() {
-    if (!animating) {
+	public void swapEndpoints() {
+    if (finished) {
       float temp = _start;
       _start = _target;
       _target = temp;
-      restart();
+      reset();
     }
 	}
   
